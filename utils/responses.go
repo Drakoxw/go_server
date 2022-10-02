@@ -18,8 +18,8 @@ type RespBad struct {
 
 type Response struct {
 	Status        string      `json:"status"`
-	Data          interface{} `json:"data"`
 	Message       string      `json:"message"`
+	Data          interface{} `json:"data"`
 	statusCode    int
 	contentType   string
 	responseWrite http.ResponseWriter
@@ -45,6 +45,13 @@ func SendResponse(w http.ResponseWriter, dataSend RespOk) {
 	response := CreateResponseDefault(w)
 	response.Message = dataSend.Message
 	response.Data = dataSend.Data
+	response.Send()
+}
+func SendResponseVoid(w http.ResponseWriter) {
+	response := CreateResponseDefault(w)
+	response.statusCode = 200
+	response.Message = "No existen los recursos requeridos"
+	response.Data = make([]string, 0)
 	response.Send()
 }
 

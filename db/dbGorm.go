@@ -1,32 +1,46 @@
-package db
+package dbSql
 
 import (
 	"database/sql"
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
+
+var dsn = "root:@tcp(localhost:3306)/go_db?charset=utf8mb4&parseTime=True&loc=Local"
+var DbGorm = func() (db *gorm.DB) {
+	if db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{}); err != nil {
+		fmt.Println("Error en coxion a base de datos", err)
+		panic(err)
+	} else {
+		fmt.Println("Conexion a base de datos OK")
+		return db
+	}
+}()
 
 const url = "root:@tcp(localhost:3306)/go_db"
 
-var db *sql.DB
+var dbSql *sql.DB
 
 func Connect() {
+	// dbGorm.
 	conx, err := sql.Open("mysql", url)
 	if err != nil {
 		panic(err)
 	}
 	// fmt.Println("conexion a base de datos exitosa")
-	db = conx
+	dbSql = conx
 }
 
 func Close() {
-	db.Close()
+	dbSql.Close()
 }
 
 // VERIFICA LA CONEXION A BASE DE DATOS
 func VerifyPing() {
-	if err := db.Ping(); err != nil {
+	if err := dbSql.Ping(); err != nil {
 		panic(err)
 	}
 }
@@ -59,7 +73,7 @@ func CreateTable(schema string, name string) {
 
 func Exec(query string, arg ...interface{}) (sql.Result, error) {
 	Connect()
-	res, err := db.Exec(query, arg...)
+	res, err := dbSql.Exec(query, arg...)
 	Close()
 
 	if err != nil {
@@ -70,7 +84,7 @@ func Exec(query string, arg ...interface{}) (sql.Result, error) {
 
 func Query(query string, arg ...interface{}) (*sql.Rows, error) {
 	Connect()
-	res, err := db.Query(query, arg...)
+	res, err := dbSql.Query(query, arg...)
 	Close()
 	if err != nil {
 

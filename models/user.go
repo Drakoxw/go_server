@@ -1,7 +1,7 @@
 package models
 
 import (
-	"server/db"
+	dbSql "SvGorm/db"
 	"time"
 )
 
@@ -10,6 +10,24 @@ type User struct {
 	UserName string `json:"userName"`
 	Password string `json:"password"`
 	Email    string `json:"email"`
+}
+type User2 struct {
+	Id         int64
+	UserName   string
+	Password   string
+	Email      string
+	Created_at time.Time
+}
+
+type UserPublic struct {
+	Id         int64  `json:"id"`
+	UserName   string `json:"userName"`
+	Email      string `json:"email"`
+	Created_at string `json:"created_at"`
+}
+
+func MigrateUser2() {
+	dbSql.DbGorm.AutoMigrate(User2{})
 }
 
 const UsersTable string = "users"
@@ -24,16 +42,20 @@ const UsersSchema string = `CREATE TABLE users (
 	deleted_at TIMESTAMP NULL
 )`
 
+func GetAllClients() {
+
+}
+
 func (user *User) insert() {
-	sql := "INSERT users SET userName=?, password=?, email=?  "
-	res, _ := db.Exec(sql, user.UserName, user.Password, user.Email)
+	sql := "INSERT user2 SET user_name=?, password=?, email=?  "
+	res, _ := dbSql.Exec(sql, user.UserName, user.Password, user.Email)
 	user.Id, _ = res.LastInsertId()
 }
 
 func (user *User) update() {
 	now := time.Now().Format("2006-01-02 15:04:05")
 	sql := "UPDATE users SET userName=?, password=?, email=?, updated_at=?  WHERE id = ? "
-	db.Exec(sql, user.UserName, user.Password, user.Email, now, user.Id)
+	dbSql.Exec(sql, user.UserName, user.Password, user.Email, now, user.Id)
 }
 
 func (user *User) Save() {
@@ -64,7 +86,7 @@ func CreateUser(name, pass, email string) *User {
 func ListUsers() ([]User, error) {
 	sql := "SELECT id, userName, password, email FROM `users` WHERE deleted_at IS NULL "
 	users := []User{}
-	rows, err := db.Query(sql)
+	rows, err := dbSql.Query(sql)
 	if err != nil {
 		return nil, err
 	} else {
@@ -81,7 +103,7 @@ func ListUsers() ([]User, error) {
 func GetUserId(id int) (User, error) {
 	sql := "SELECT id, userName, password, email FROM `users` WHERE id = ? AND deleted_at IS NULL "
 	user := User{}
-	rows, err := db.Query(sql, id)
+	rows, err := dbSql.Query(sql, id)
 	if err != nil {
 		return user, err
 	} else {
@@ -95,5 +117,5 @@ func GetUserId(id int) (User, error) {
 func DeleteUser(id int) {
 	now := time.Now().Format("2006-01-02 15:04:05")
 	sql := "UPDATE users SET deleted_at=? WHERE id = ? "
-	db.Exec(sql, now, id)
+	dbSql.Exec(sql, now, id)
 }
